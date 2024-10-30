@@ -1,0 +1,145 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
+
+# Helper functions for augmentation and validation
+
+def detect_pattern(speed_series):
+    patterns = []
+    for i in range(1, len(speed_series)):
+        if speed_series[i] > speed_series[i-1]:
+            patterns.append('accelerating')
+        elif speed_series[i] < speed_series[i-1]:
+            patterns.append('decelerating')
+        else:
+            patterns.append('idling')
+    return patterns
+
+def add_noise_with_limit(speed, patterns, noise_range=3, decimal_places=1):
+    synthetic_speed = speed.copy()
+
+    for i in range(len(speed)):
+        # If the speed is 0 at any point, keep the speed as 0 in the synthetic dataset
+        if speed[i] == 0:
+            synthetic_speed[i] = 0
+        else:
+            # Add noise based on the driving pattern
+            if patterns[i-1] == 'accelerating':
+                noise = np.round(np.random.uniform(0, noise_range), decimals=decimal_places)
+            elif patterns[i-1] == 'decelerating':
+                noise = np.round(np.random.uniform(-noise_range, 0), decimals=decimal_places)
+            else:
+                noise = np.round(np.random.uniform(-1, 1), decimals=decimal_places)  # Less noise during idling
+
+            # Apply the noise
+            synthetic_speed[i] += noise
+
+        # Ensure no negative speed values
+        if synthetic_speed[i] < 0:
+            synthetic_speed[i] = 0
+
+    return synthetic_speed
+
+# Load all standard datasets and calculate total duration
+input_folder = '/content/Input'  # Replace with the folder containing all standard datasets
+all_files = [f for f in os.listdir(input_folder) if f.endswith('.xlsx')]
+
+total_seconds = 0
+
+if len(all_files) > 0:
+    for file_name in all_files:
+        file_path = os.path.join(input_folder, file_name)
+        data = pd.read_excel(file_path)
+        total_seconds += data['Test Time, secs'].iloc[-1]  # Assuming time is cumulative in each file
+
+    total_hours = total_seconds / 3600
+    print(f"Total duration of standard datasets: {total_hours:.2f} hours")
+
+    # Augmentation Loop: Generate 5 augmented datasets for each standard dataset
+    for file_name in all_files:
+        file_path = os.path.join(input_folder, file_name)
+        original_data = pd.read_excel(file_path)
+        
+        # Extract time and speed columns
+        time = original_data['Test Time, secs']
+        speed = original_data['Target Speed, mph']
+
+        # Detect patterns of acceleration, deceleration, and idling
+        patterns = detect_pattern(speed)
+
+        # Create an output folder for each standard dataset to store its augmented versions
+        base_name = os.path.splitext(file_name)[0]
+        dataset_output_folder = os.path.join('/content/Output', base_name)
+        if not os.path.exists(dataset_output_folder):
+            os.makedirs(dataset_output_folder)
+
+        # Define number of augmented datasets to generate (fixed at 5)
+        num_augmentations = 5
+
+        for i in range(num_augmentations):
+            # Create synthetic data by adding noise with limit
+            synthetic_speed = add_noise_with_limit(speed, patterns)
+
+            # Create augmented data DataFrame
+            augmented_data = pd.DataFrame({
+                'Test Time, secs': time,
+                'Target Speed, mph': synthetic_speed
+            })
+
+            # Save the augmented dataset
+            augmented_file_name = f'{base_name}_Synthetic_v{i+1}.xlsx'
+            augmented_file_path = os.path.join(dataset_output_folder, augmented_file_name)
+            augmented_data.to_excel(augmented_file_path, index=False)
+            print(f"Augmented dataset saved to {augmented_file_path}")
+
+        # Automated Validation: Compare Standard vs Synthetic Datasets
+        validation_results = []
+
+        # Create validation output folders
+        validation_folder = '/content/Validation Results'
+        histograms_folder = os.path.join(validation_folder, 'Histograms/')
+        time_series_folder = os.path.join(validation_folder, 'Time_Series_Plots/')
+        metrics_folder = os.path.join(validation_folder, 'Metrics/')
+        comparison_graphs_folder = os.path.join(validation_folder, 'Comparison_Graphs/')
+
+        for folder in [histograms_folder, time_series_folder, metrics_folder, comparison_graphs_folder]:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
+        # Validate each synthetic dataset
+        for i in range(num_augmentations):
+            synthetic_file_path = os.path.join(dataset_output_folder, f'{base_name}_Synthetic_v{i+1}.xlsx')
+            synthetic_data = pd.read_excel(synthetic_file_path)
+            synthetic_speed = synthetic_data['Target Speed, mph']
+            validate_synthetic_dataset(speed, synthetic_speed, time, base_name, i, histograms_folder, time_series_folder, validation_results)
+
+            # Plot comparison graphs between standard and synthetic datasets
+            plt.figure(figsize=(10, 5))
+            plt.plot(time, speed, label='Standard Dataset', color='blue')
+            plt.plot(time, synthetic_speed, label=f'Synthetic Dataset v{i+1}', color='orange', linestyle='--')
+            plt.xlabel('Time (secs)')
+            plt.ylabel('Speed (mph)')
+            plt.title(f'Comparison: Standard vs Synthetic v{i+1}')
+            plt.legend()
+            plt.grid(True)
+            comparison_graph_file_path = os.path.join(comparison_graphs_folder, f'{base_name}_Comparison_v{i+1}.png')
+            plt.savefig(comparison_graph_file_path)
+            plt.close()
+            print(f"Comparison graph saved to {comparison_graph_file_path}")
+
+        # Save validation metrics in a CSV file
+        metrics_file_path = os.path.join(metrics_folder, f'Validation_Metrics_{base_name}.csv')
+        validation_df = pd.DataFrame(validation_results)
+        validation_df.to_csv(metrics_file_path, index=False)
+        print(f"Validation metrics saved to {metrics_file_path}")
+
+        # Print validation summary for each standard dataset
+        for result in validation_results:
+            print(f"Validation for {result['Synthetic Dataset']}:")
+            print(f"Standard Mean: {result['Standard Mean']:.2f}, Synthetic Mean: {result['Synthetic Mean']:.2f}")
+            print(f"Standard Std: {result['Standard Std']:.2f}, Synthetic Std: {result['Synthetic Std']:.2f}")
+            print(f"Matching Segments: {result['Matching Segments']}/{result['Total Segments']}")
+else:
+    print("No standard datasets found in the input folder.")
