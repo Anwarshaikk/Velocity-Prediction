@@ -1,0 +1,100 @@
+# data_preprocessing.py
+
+import pandas as pd
+import numpy as np
+import os
+
+# Set paths for standard and synthetic data
+input_folder = './Data/Standard/'
+output_folder = './Data/Processed/'
+
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+def preprocess_data(file_path, output_path):
+    """
+    Preprocess the data by handling missing values, normalization, and time-series segmentation.
+    
+    Args:
+    - file_path (str): The path to the input data file.
+    - output_path (str): The path to save the preprocessed data.
+    """
+    # Load the dataset
+    data = pd.read_excel(file_path)
+    
+    # Drop any rows with missing values
+    data.dropna(inplace=True)
+    
+    # Normalize speed values to range [0, 1]
+    data['Target Speed, mph'] = (data['Target Speed, mph'] - data['Target Speed, mph'].min()) / (data['Target Speed, mph'].max() - data['Target Speed, mph'].min())
+    
+    # Segment the time-series data into smaller sequences (window size = 10)
+    window_size = 10
+    sequences = []
+    targets = []
+    for i in range(len(data) - window_size):
+        seq = data['Target Speed, mph'].iloc[i:i + window_size].values
+        target = data['Target Speed, mph'].iloc[i + window_size]
+        sequences.append(seq)
+        targets.append(target)
+    
+    # Create a new dataframe with sequences and targets
+    processed_data = pd.DataFrame({'Sequence': sequences, 'Target': targets})
+    
+    # Save the preprocessed data
+    processed_data.to_pickle(output_path)
+    print(f"Processed data saved to {output_path}")
+
+# Preprocess all standard datasets
+for file_name in os.listdir(input_folder):
+    if file_name.endswith('.xlsx'):
+        input_file_path = os.path.join(input_folder, file_name)
+        output_file_path = os.path.join(output_folder, f"{os.path.splitext(file_name)[0]}_processed.pkl")
+        preprocess_data(input_file_path, output_file_path)
+
+
+# synthetic_preprocessing.py
+
+def preprocess_synthetic_data(file_path, output_path):
+    """
+    Preprocess the synthetic data by applying similar normalization and segmentation techniques.
+    Args:
+    - file_path (str): Path to the synthetic dataset.
+    - output_path (str): Path to save the preprocessed synthetic data.
+    """
+    # Load the dataset
+    data = pd.read_excel(file_path)
+    
+    # Drop rows with missing values
+    data.dropna(inplace=True)
+    
+    # Normalize speed values to range [0, 1]
+    data['Target Speed, mph'] = (data['Target Speed, mph'] - data['Target Speed, mph'].min()) / (data['Target Speed, mph'].max() - data['Target Speed, mph'].min())
+    
+    # Segment the time-series data into smaller sequences (window size = 10)
+    window_size = 10
+    sequences = []
+    targets = []
+    for i in range(len(data) - window_size):
+        seq = data['Target Speed, mph'].iloc[i:i + window_size].values
+        target = data['Target Speed, mph'].iloc[i + window_size]
+        sequences.append(seq)
+        targets.append(target)
+    
+    # Create a new dataframe with sequences and targets
+    processed_data = pd.DataFrame({'Sequence': sequences, 'Target': targets})
+    
+    # Save the preprocessed data
+    processed_data.to_pickle(output_path)
+    print(f"Processed synthetic data saved to {output_path}")
+
+# Set paths for synthetic data
+synthetic_input_folder = './Data/Synthetic/'
+synthetic_output_folder = './Data/Processed/'
+
+# Preprocess all synthetic datasets
+for file_name in os.listdir(synthetic_input_folder):
+    if file_name.endswith('.xlsx'):
+        input_file_path = os.path.join(synthetic_input_folder, file_name)
+        output_file_path = os.path.join(synthetic_output_folder, f"{os.path.splitext(file_name)[0]}_processed.pkl")
+        preprocess_synthetic_data(input_file_path, output_file_path)
