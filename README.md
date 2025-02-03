@@ -1,10 +1,10 @@
-# Drive Cycle Velocity Prediction Project
+# 📝 Drive Cycle Velocity Prediction Project
 
-## Overview
+## 🌟 Overview
 
 This project aims to develop a predictive model for **vehicle velocity patterns** using both **standard and synthetic drive cycle datasets**. By employing **time-series analysis** and **machine learning**, specifically **LSTM networks**, we predict the speed variations of a vehicle based on past driving data. The project has potential applications in **automotive testing**, **fuel efficiency analysis**, and **emissions studies**.
 
-## Folder Structure
+## 📂 Folder Structure
 
   - **Data/**=: Contains all datasets used in the project.
   - **Standard/**: Original datasets obtained from recognized sources, such as US EPA and European driving cycle datasets.
@@ -36,7 +36,7 @@ This project aims to develop a predictive model for **vehicle velocity patterns*
   - **Controller_Modifications/**: MATLAB files used to modify and optimize electric vehicle controllers.
   - **Drive_Cycle_Simulations/**: Files used for simulating different drive cycles.
 
-## Installation
+## 🛠️ Installation
 
 1. **Clone the repository**:
    ```sh
@@ -55,7 +55,7 @@ This project aims to develop a predictive model for **vehicle velocity patterns*
    pip install -r requirements.txt
    ```
 
-## Usage
+## 🔮 Usage
 
 1. **Data Preprocessing**:
    - Run the scripts in the **Scripts/Data_Preprocessing/** directory to prepare the datasets for training.
@@ -72,31 +72,41 @@ This project aims to develop a predictive model for **vehicle velocity patterns*
 5. **MATLAB Simulations**:
    - The **Matlab_Simulations/** folder contains files that can be used to run simulations and modify vehicle controllers using the velocity predictions from the model.
 
-## Project Highlights
+## 🚀 Project Highlights
 
 - **Data Augmentation**: Synthetic datasets were generated to introduce variability in driving conditions, which improved the model's robustness.
 - **Model**: The **LSTM** model architecture effectively captured the temporal dependencies of vehicle velocity data.
 - **Evaluation**: Histograms and time-series plots were used to validate the performance of the velocity prediction model.
 - **MATLAB Integration**: MATLAB simulations were performed to explore the applicability of the predicted velocity profiles in optimizing electric vehicle controllers.
 
-## Results
+## 📌 Results
 
 - The model was evaluated using **Mean Squared Error (MSE)** to measure prediction accuracy.
 - Time-series graphs and histograms comparing actual and predicted velocities demonstrated that the model successfully learned the overall distribution and patterns of the driving data.
 
-## Future Work
+## 🔮 Future Work
 
 - **Controller Integration**: Integrate the velocity prediction model with electric vehicle controllers in MATLAB.
 - **Model Predictive Control**: Implement **Model Predictive Control (MPC)** for real-time velocity prediction to enhance driving performance.
 - **Additional Datasets**: Expand the dataset to include more varied drive cycles, improving model generalizability.
 
-## Contributors
+## 🤝 Contributing  
 
-- Anwar Rashid Shaik
-- vivek
-- vatsalya
-- vennella
-- pavan
+💡 Found a bug? Want to improve the model? Contributions are welcome!  
+
+1. Fork the repository  
+2. Create a feature branch (`git checkout -b feature-name`)  
+3. Commit changes (`git commit -m "Add feature"`)  
+4. Push to your branch (`git push origin feature-name`)  
+5. Open a Pull Request  
+
+## ✨ Contributors
+
+- 👤 Anwar Rashid Shaik
+- 👤 Vivekananda Arekatla
+- 👤 Vatsalya Naidu 
+- 👤 Manogna Vennella
+- 👤 Pavan Kumar
 
 ## License
 
@@ -104,6 +114,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- **University of New Haven ** for providing the resources and support for this project.
+- **University of New Haven** for providing the resources and support for this project.
 - **US Environmental Protection Agency (EPA)** for providing drive cycle datasets.
 
